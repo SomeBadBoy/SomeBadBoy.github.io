@@ -2,8 +2,12 @@
 layout: post
 title:  "Java集合框架--概述"
 date:   2016-08-05 17:06:38 +0800
-categories: Java
+categories: JAVA
+tag: JAVA
 ---
+* content
+{:toc}
+
 # 概述
 `Java`中的集合框架有两种，一种是`Map`，一种是`Collection`，`Collection`是一种线性的数据结构，`Map`则是一种key-value形式的数据结构。`Java`中的集合框架十分常用，比如`HashMap`，`ArrayList`，`LinkedList`等，下面介绍一下集合框架的关系，后续再深入每个类的内部，分析其实现原理与应用场景。
 
