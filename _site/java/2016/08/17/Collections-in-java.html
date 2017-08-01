@@ -6,12 +6,12 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Welcome to Jekyll!</title>
-  <meta name="description" content="You’ll find this post in your _posts directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different wa...">
+  <title>Java集合框架--List</title>
+  <meta name="description" content="概述List的常用子类主要有ArrayList,LinkedList这样的非线程安全类，还有Stack,Vector,CopyOnWriteArrayList这样的线程安全类。这里说一下每个类的数据结构及其实现方法。">
 
   <link rel="stylesheet" href="/blog/css/main.css">
-  <link rel="canonical" href="/blog/jekyll/update/2016/05/22/welcome-to-jekyll.html">
-  <link rel="alternate" type="application/rss+xml" title="看代码，看世界" href="/blog/feed.xml">
+  <link rel="canonical" href="http://myvps:4000/blog/java/2016/08/17/Collections-in-java.html">
+  <link rel="alternate" type="application/rss+xml" title="看代码，看世界" href="http://myvps:4000/blog/feed.xml">
 </head>
 
 
@@ -57,31 +57,16 @@
         <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 
   <header class="post-header">
-    <h1 class="post-title" itemprop="name headline">Welcome to Jekyll!</h1>
-    <p class="post-meta"><time datetime="2016-05-22T21:44:15+08:00" itemprop="datePublished">May 22, 2016</time></p>
+    <h1 class="post-title" itemprop="name headline">Java集合框架--List</h1>
+    <p class="post-meta"><time datetime="2016-08-17T14:03:28+08:00" itemprop="datePublished">Aug 17, 2016</time></p>
   </header>
 
   <div class="post-content" itemprop="articleBody">
-    <p>You’ll find this post in your <code class="highlighter-rouge">_posts</code> directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run <code class="highlighter-rouge">jekyll serve</code>, which launches a web server and auto-regenerates your site when a file is updated.</p>
+    <h1 id="section">概述</h1>
+<p><code class="highlighter-rouge">List</code>的常用子类主要有<code class="highlighter-rouge">ArrayList</code>,<code class="highlighter-rouge">LinkedList</code>这样的非线程安全类，还有<code class="highlighter-rouge">Stack</code>,<code class="highlighter-rouge">Vector</code>,<code class="highlighter-rouge">CopyOnWriteArrayList</code>这样的线程安全类。这里说一下每个类的数据结构及其实现方法。</p>
 
-<p>To add new posts, simply add a file in the <code class="highlighter-rouge">_posts</code> directory that follows the convention <code class="highlighter-rouge">YYYY-MM-DD-name-of-post.ext</code> and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.</p>
-
-<p>Jekyll also offers powerful support for code snippets:</p>
-
-<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
-  <span class="nb">puts</span> <span class="s2">"Hi, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">"</span>
-<span class="k">end</span>
-<span class="n">print_hi</span><span class="p">(</span><span class="s1">'Tom'</span><span class="p">)</span>
-<span class="c1">#=&gt; prints 'Hi, Tom' to STDOUT.</span></code></pre></figure>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"test"</span>
-<span class="nb">echo</span> <span class="s2">"blank line"</span>
-<span class="nb">echo</span> <span class="s2">"new line"</span>
-</code></pre>
-</div>
-
-<p>Check out the <a href="http://jekyllrb.com/docs/home">Jekyll docs</a> for more info on how to get the most out of Jekyll. File all bugs/feature requests at <a href="https://github.com/jekyll/jekyll">Jekyll’s GitHub repo</a>. If you have questions, you can ask them on <a href="https://talk.jekyllrb.com/">Jekyll Talk</a>.</p>
-
+<h1 id="arraylist">ArrayList</h1>
+<p><code class="highlighter-rouge">ArrayList</code>从数据结构上来说是一个数组，支持动态扩张，但不支持动态收缩。</p>
 
   </div>
 
