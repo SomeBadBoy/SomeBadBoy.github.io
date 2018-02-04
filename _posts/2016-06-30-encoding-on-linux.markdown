@@ -1,8 +1,6 @@
 ---
 layout: post
 title:  "记一次mac上的文件乱码处理"
-date:   2016-06-30 14:26:32 +0800
-categories: linux
 tag: linux
 ---
 * content

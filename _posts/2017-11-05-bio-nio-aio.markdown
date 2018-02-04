@@ -1,8 +1,6 @@
 ---
 layout: post
 title:  "BIO，NIO，AIO简单分析"
-date:   2017-11-05 00:00:00 +0800
-categories: JAVA
 tag: JAVA
 ---
 * content

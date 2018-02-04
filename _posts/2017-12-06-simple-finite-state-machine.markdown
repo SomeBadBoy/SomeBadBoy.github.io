@@ -1,8 +1,6 @@
 ---
 layout: post
 title:  "状态机分享"
-date:   2017-12-06 00:00:00 +0800
-categories: JAVA
 tag: JAVA
 ---
 * content
@@ -68,11 +66,11 @@ spring-statemachine定义的模型比较全，有
 
 # 4.前景规划
 
-[inputSymbol]: /styles/images/finite-state-machine/inputSymbol.svg
-[initStateSet]: /styles/images/finite-state-machine/initStateSet.svg
-[initState]: /styles/images/finite-state-machine/initState.svg
-[finalStateSet]: /styles/images/finite-state-machine/finalStateSet.svg
-[stateTransition]: /styles/images/finite-state-machine/stateTransition.svg
-[stateTransitionFormulator]: /styles/images/finite-state-machine/stateTransitionFormulator.svg
-[NFAexample]: /styles/images/finite-state-machine/NFAexample.svg
-[DFAexample]: /styles/images/finite-state-machine/DFAexample.svg
+[inputSymbol]: /assets/images/finite-state-machine/inputSymbol.svg
+[initStateSet]: /assets/images/finite-state-machine/initStateSet.svg
+[initState]: /assets/images/finite-state-machine/initState.svg
+[finalStateSet]: /assets/images/finite-state-machine/finalStateSet.svg
+[stateTransition]: /assets/images/finite-state-machine/stateTransition.svg
+[stateTransitionFormulator]: /assets/images/finite-state-machine/stateTransitionFormulator.svg
+[NFAexample]: /assets/images/finite-state-machine/NFAexample.svg
+[DFAexample]: /assets/images/finite-state-machine/DFAexample.svg
