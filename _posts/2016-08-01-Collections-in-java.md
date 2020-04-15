@@ -1,8 +1,6 @@
 ---
 layout: post
 title:  "Java集合框架--概述"
-date:   2016-08-05 17:06:38 +0800
-categories: JAVA
 tag: JAVA
 ---
 * content

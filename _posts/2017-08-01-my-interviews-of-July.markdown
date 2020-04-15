@@ -1,8 +1,6 @@
 ---
 layout: post
 title:  "北京面试历险记一"
-date:   2017-08-01 00:00:00 +0800
-categories: JAVA
 tag: 面试
 ---
 * content
