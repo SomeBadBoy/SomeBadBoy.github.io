@@ -1,22 +1,9 @@
 ---
 layout: post
 title:  "Redis设计与实现（一）"
-date:   2020-04-09 00:00:00 +0800
-categories: redis
 tag: Redis设计与实现
+mathjax: true
 ---
-<head>
-    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
-    <script type="text/x-mathjax-config">
-        MathJax.Hub.Config({
-            tex2jax: {
-            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
-            inlineMath: [['$','$']]
-            }
-        });
-    </script>
-</head>
-
 * content
 {:toc}
 
@@ -29,7 +16,7 @@ tag: Redis设计与实现
 3. `SDS`支持存储`\0`作为字符串内容（而不是结尾分隔符），因为额外记录了数组中的有效字符数的长度。
 
 # 第三章 链表
-没啥好说的，比较普通的一个双向链表
+比较普通的一个双向链表，没有什么特别突出的点。
 
 # 第四章 字典
 其实就是`Map`类的数据结构，重点有以下几点：
@@ -42,7 +29,7 @@ tag: Redis设计与实现
   4. 额外注意：在扩容期间，对字典的所有查询和删除操作，会同时在`ht[0]`和`ht[1]`上生效，所有的写入操作只在`ht[1]`上生效
 
 # 第五章 跳跃表
-没啥好说的，普通的跳跃表，也没有介绍算法和数据结构
+普通的跳跃表，也没有介绍算法和数据结构
 
 # 第六章 整数集合
 比较有意思的一个数据结构，使用场景固定：只包含整数的集合并且数量不多，集合内元素是有序的。有意思的地方在于，该数据结构底层用了一个`int_8`类型来存放所有整数，包括`int_8`、`int_16`、`int_32`和`int_64`。
@@ -110,7 +97,7 @@ redis在存储string类型的数据时，会先判断数据类型以及数据长
 ## list
 有序列表格式的数据类型。
 
-redis在存储list的时候，有两种数据结构，一个是压缩列表`ziplist`，一个是跳跃表`linkedlist`。只有满足以下两种情况的时候，才使用压缩列表存储
+redis在存储list的时候，有两种数据结构，一个是压缩列表`ziplist`，一个是链表`linkedlist`。只有满足以下两种情况的时候，才使用压缩列表存储
 + 列表内所有元素的长度都小于64字节
 + 列表内元素个数小于512个
 
@@ -135,14 +122,19 @@ redis在存储list的时候，有两种数据结构，一个是压缩列表`zipl
 ## zset
 有序集合数据类型。zset和set的区别，主要在于zset会有一个分值score字段，能够基于分值做排序以及范围查找等功能。
 
-也有两种数据结构，一个是压缩列表`ziplist`，一个是跳跃表`linkedlist`加字典`hashtable`。只有满足以下两种情况时，才使用压缩列表存储
+也有两种数据结构，一个是压缩列表`ziplist`，一个是跳跃表`skiplist`加字典`hashtable`。只有满足以下两种情况时，才使用压缩列表存储
 + zset内所有元素的长度都小于64个字节
 + zset内元素个数小于128个
 
 在使用`ziplist`实现zset存储时，先根据score值，找到该元素在压缩列表中的位置，然后将元素对象先插入到对应位置，紧接着，在元素后面插入score值对象。其中，score值较小的排在前面。
 
-在使用`linkedlist`和`hashtable`实现zset存储时，`linkedlist`中根据score值作为索引实现一个跳跃表，跳跃表最底层有元素值（所有的），`hashtable`以元素值作为key，score作为value，同样也有所有元素值。
+在使用`skiplist`和`hashtable`实现zset存储时，`skiplist`中根据score值作为索引实现一个跳跃表，跳跃表最底层有元素值（所有的），`hashtable`以元素值作为key，score作为value，同样也有所有元素值。
 
 那么为什么要用两种数据结构来做zset的存储呢？主要是基于zset不同使用场景下的性能考虑的，以zset支持的以下两个API举例：根据score值范围查找`zrange`、获取单个元素score值`zscore`。
-+ `zrange`如果使用`linkedlist`实现，只需要 $O(logN)$ 的时间复杂度；而使用`hashtable`的话，需要 $O(NlogN)$ 的时间复杂度，并且需要 $O(N)$ 的额外空间复杂度。
-+ `zscore`如果使用`linkedlist`实现，需要遍历整个列表，需要 $O(logN)$ 的时间复杂度；而使用`hashtable`的话，仅需要 $O(1)$ 的时间复杂度。
++ `zrange`如果使用`skiplist`实现，只需要 $O(logN)$ 的时间复杂度；而使用`hashtable`的话，需要 $O(NlogN)$ 的时间复杂度，并且需要 $O(N)$ 的额外空间复杂度。
++ `zscore`如果使用`skiplist`实现，需要遍历整个列表，需要 $O(logN)$ 的时间复杂度；而使用`hashtable`的话，仅需要 $O(1)$ 的时间复杂度。
+
+# 总结
+***Redis设计与实现*** 一书的第一章 *数据结构与对象* 到此结束。主要介绍了Redis底层使用的基础数据结构和对象，之前在我的认知中，对Redis的数据结构了解其实只到了五种数据类型这一层，实际上对于这些数据类型的底层数据结构实现，相关的实现设计其实都没有太多的了解，包括Redis是基于C语言实现的之前也不知道。后面会进行本书的后续章节的学习与总结，时间应该不会太久吧，学习的目的不是为了进行redis开发，而是希望能对redis有更多的了解，并且在条件允许（或者说有兴趣）的情况下，能够造一个类似的轮子，至少需要知道如何造一个类似的轮子。
+
+除了本文所介绍的内容之外，书中还有许多各数据类型所支持的API，以及该API对应的实现方式。这一部分本人认为不太重要，并且不是学习的重点，因此没有列举。

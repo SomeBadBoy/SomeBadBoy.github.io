@@ -1,5 +1,5 @@
 # faster gems source for China
-source 'http://gems.ruby-china.org/'
+source 'https://gems.ruby-china.com/'
 
 # gems source for the rest
 # source 'https://rubygems.org/'
