@@ -64,6 +64,12 @@ disqus:
 ## Comment system (gitalk) ##
 # please refer to https://github.com/gitalk/gitalk for more info.
 gitalk:
+  clientId: 6c5b98f79fd8598c5d7a
+  clientSecret: aa41e2e867ab662cf00b7e0f71c1427543cf72e2
+  repository: SomeBadBoy.github.io
+  owner: SomeBadBoy
+  admin: SomeBadBoy
+
   # clientID:  #Github Application Client ID
   # clientSecret:  #Github Application Client Secret
   # repository:  #Github repo
@@ -125,3 +131,4 @@ gems: [jekyll-paginate]
 
 ## Server ##
 server_url: "0.0.0.0"
+
