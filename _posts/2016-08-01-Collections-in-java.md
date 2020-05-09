@@ -1,7 +1,9 @@
 ---
-layout: post
+layout: article
+aside:
+  toc: true
 title:  "Java集合框架--概述"
-tag: JAVA
+tags: JAVA
 ---
 * content
 {:toc}

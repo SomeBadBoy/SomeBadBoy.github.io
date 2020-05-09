@@ -1,5 +1,7 @@
 ---
-layout: post
+layout: article
+aside:
+  toc: true
 title:  "BIO，NIO，AIO简单分析"
 tag: JAVA
 ---

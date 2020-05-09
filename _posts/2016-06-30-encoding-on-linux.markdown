@@ -1,7 +1,10 @@
 ---
-layout: post
+layout: article
+aside:
+  toc: true
 title:  "记一次mac上的文件乱码处理"
-tag: linux
+tags:
+  - linux
 ---
 * content
 {:toc}

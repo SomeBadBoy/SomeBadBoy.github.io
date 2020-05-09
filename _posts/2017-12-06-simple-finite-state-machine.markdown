@@ -1,5 +1,7 @@
 ---
-layout: post
+layout: article
+aside:
+  toc: true
 title:  "状态机分享"
 tag: JAVA
 ---

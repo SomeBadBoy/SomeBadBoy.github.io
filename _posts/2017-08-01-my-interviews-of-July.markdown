@@ -1,5 +1,7 @@
 ---
-layout: post
+layout: article
+aside:
+  toc: true
 title:  "北京面试历险记一"
 tag: 面试
 ---

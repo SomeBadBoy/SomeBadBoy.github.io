@@ -1,5 +1,7 @@
 ---
-layout: post
+layout: article
+aside:
+  toc: true
 title:  "Gossip协议（一）"
 date:   2017-09-18 00:00:00 +0800
 categories: Protocol

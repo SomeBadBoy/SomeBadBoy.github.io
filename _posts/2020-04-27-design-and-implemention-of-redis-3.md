@@ -1,5 +1,7 @@
 ---
-layout: post
+layout: article
+aside:
+  toc: true
 title:  "Redis设计与实现（三）"
 tag: Redis设计与实现
 mathjax: true
