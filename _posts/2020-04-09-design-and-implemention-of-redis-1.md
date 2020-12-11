@@ -5,8 +5,9 @@ aside:
 title:  "Redis设计与实现（一）"
 tag: Redis设计与实现
 mathjax: true
-key: design-and-implemention-of-redis-1
-comment: true
+key:
+  - redis
+  - reading
 ---
 * content
 {:toc}
