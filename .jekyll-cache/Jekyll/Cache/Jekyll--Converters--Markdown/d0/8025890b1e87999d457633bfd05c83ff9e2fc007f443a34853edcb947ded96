@@ -1,0 +1,151 @@
+I"-2<ul id="markdown-toc">
+  <li><a href="#第九章-数据库" id="markdown-toc-第九章-数据库">第九章 数据库</a>    <ul>
+      <li><a href="#数据结构与curd" id="markdown-toc-数据结构与curd">数据结构与CURD</a></li>
+      <li><a href="#key过期处理" id="markdown-toc-key过期处理">key过期处理</a></li>
+      <li><a href="#数据库通知" id="markdown-toc-数据库通知">数据库通知</a></li>
+    </ul>
+  </li>
+  <li><a href="#第十十一章-rbd持久化-与-aof持久化" id="markdown-toc-第十十一章-rbd持久化-与-aof持久化">第十~十一章 RBD持久化 与 AOF持久化</a>    <ul>
+      <li><a href="#aof重写" id="markdown-toc-aof重写">AOF重写</a></li>
+      <li><a href="#特别的aof" id="markdown-toc-特别的aof">特别的AOF</a></li>
+    </ul>
+  </li>
+  <li><a href="#第十二第十四章-事件客户端服务器" id="markdown-toc-第十二第十四章-事件客户端服务器">第十二~第十四章 事件/客户端/服务器</a>    <ul>
+      <li><a href="#事件" id="markdown-toc-事件">事件</a></li>
+      <li><a href="#客户端" id="markdown-toc-客户端">客户端</a></li>
+      <li><a href="#服务器" id="markdown-toc-服务器">服务器</a></li>
+    </ul>
+  </li>
+  <li><a href="#总结" id="markdown-toc-总结">总结</a></li>
+</ul>
+
+<h1 id="第九章-数据库">第九章 数据库</h1>
+<p>本章主要介绍了Redis的数据库存储结构，还介绍了包括增删改查的实现流程、key过期处理、数据库通知等。</p>
+
+<h2 id="数据结构与curd">数据结构与CURD</h2>
+<p>redis支持多个数据库同时提供服务，默认会创建16个数据库。数据库内的数据采用的是KV方式存储，比较像一个<code class="language-plaintext highlighter-rouge">hashmap</code>，因此在每个数据库内，key是唯一的，以下该map称为 <strong>数据字典</strong>；数据库内还有一个<code class="language-plaintext highlighter-rouge">hashmap</code>来存放所有key的过期时间，key与数据字典中的key相同，value是绝对的过期时间，以下称为 <strong>过期时间字典</strong>；还有一些统计相关的字段，比如统计数据库的缓存命中率（某个key是否在存在）等。</p>
+
+<p>在redis中对某个key进行CURD的操作时，需要先查询过期时间字典得到该key的过期时间。</p>
+<ul>
+  <li>如果数据已过期，则将删除该过期数据的kv对，然后对于写操作（比如setnx）会继续执行写入流程并且返回执行结果，对于读操作，则直接返回空结果。</li>
+  <li>如果数据未过期，则正常进行读写流程，并返回对应的执行结果。</li>
+  <li>读写流程中，在完成数据的读取或写入后，还会进行以下操作
+    <ul>
+      <li>更新操作对象的lru字段</li>
+      <li>更新数据库的相关统计字段（<code class="language-plaintext highlighter-rouge">keyspace_hits</code>以及<code class="language-plaintext highlighter-rouge">keyspace_misses</code>）</li>
+      <li>对于写入流程，如果有<code class="language-plaintext highlighter-rouge">WATCH</code>监听该key，则将该key标记为<code class="language-plaintext highlighter-rouge">dirty</code>，并且每次写入，<code class="language-plaintext highlighter-rouge">dirty</code>值加1，并且触发数据持久化以及复制操作</li>
+      <li>如果开启了数据库通知功能，还将产生对应事件，发送相关通知。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="key过期处理">key过期处理</h2>
+<p>redis支持在写入数据时设置该数据的过期时间，也支持单独通过<code class="language-plaintext highlighter-rouge">expire</code>等相关api设置某个key的过期时间。对于过期key，redis有以下几种删除策略</p>
+<ul>
+  <li>定时删除
+    <ul>
+      <li>在设置过期时间时，在服务器上启动一个定时器，到了过期时间则立即删除</li>
+      <li>优点是节省内存，能够最大程度的避免存储空间浪费</li>
+      <li>缺点是浪费CPU，在有过期时间key数量较多的情况下，大量的CPU被用来处理key的过期轮询</li>
+    </ul>
+  </li>
+  <li>惰性删除
+    <ul>
+      <li>只有在某个key在访问的时候，才去校验过期时间，并且对过期的key执行删除操作</li>
+      <li>优点是节省CPU，不需要花费额外的CPU时间做过期key的轮询</li>
+      <li>缺点是浪费内存，对于长时间没有访问的过期key无法删除，浪费存储空间</li>
+    </ul>
+  </li>
+  <li>定期删除
+    <ul>
+      <li>每隔一段时间对数据库中的key做过期时间校验，并且删除过期的key，并且通过限制执行时间，来避免长时间占用CPU</li>
+      <li>优点是比较均衡，在结合了以上两种删除策略的优缺点后，权衡出的一个对CPU和内存都比较友好的策略</li>
+      <li>缺点是在策略设置不恰当时，会退化为其中一种删除策略</li>
+    </ul>
+  </li>
+</ul>
+
+<p>在RDB持久化和AOF持久化下，过期删除的处理可以参考 **第</p>
+
+<p>对于分布式环境下，主从节点间对于过期key的删除处理如下</p>
+<ul>
+  <li>所有删除动作由主节点触发，在主节点删除过期key之后，向从节点发送<code class="language-plaintext highlighter-rouge">DEL</code>命令，删除该过期key</li>
+  <li>从节点不主动删除过期key，在对该过期key执行读取操作时，从节点不会主动删除该过期key，依然会返回该过期key的读取结果。</li>
+</ul>
+
+<p>通过这种方式，redis保证了主从节点间的数据一致性，但是对于业务程序来说，可能会遇到 <strong>幻读</strong> 现象。</p>
+
+<h2 id="数据库通知">数据库通知</h2>
+<p>redis支持两种通知订阅模式：对key订阅（<code class="language-plaintext highlighter-rouge">key_space_notification</code>）或对事件订阅（<code class="language-plaintext highlighter-rouge">key_event_notification</code>）。具体支持的订阅可以在<a href="http://www.redis.cn/topics/notifications.html">redis中文官网</a>查询。</p>
+
+<h1 id="第十十一章-rbd持久化-与-aof持久化">第十~十一章 RBD持久化 与 AOF持久化</h1>
+<p>这两章里有部分内容过于深入与细节，对于使用上没有什么帮助，在造轮子上帮助也不大。再加上这两章其实是对redis持久化功能不同实现的介绍，因此将两章合并，也有助于理解redis的持久化功能以及不同实现的差异。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>功能点</th>
+      <th>RDB</th>
+      <th>AOF</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>存储内容</td>
+      <td>完整数据，包含一些分隔标识符</td>
+      <td>执行命令的流水，包含命令key以及数据</td>
+    </tr>
+    <tr>
+      <td>数据格式</td>
+      <td>非常紧凑，完全由数据组成</td>
+      <td>包含了执行命令，同一个key可能包含多条执行命令</td>
+    </tr>
+    <tr>
+      <td>过期删除策略</td>
+      <td><strong>保存策略</strong> <br /> 过期的key本身不会保存 <br /> <strong>载入策略</strong> <br /> master节点：载入时会判断载入的key是否过期，过期则不载入 <br /> slave节点：载入时不做判断，全量载入，主从同步时删除</td>
+      <td><strong>保存策略</strong> <br /> 过期删除时，会追加一条DEL命令，删除该key <br /> <strong>载入策略</strong> <br /> 无影响，对过期key会执行插入命令与删除命令（过期时保存的DEL命令） <br /> <strong>AOF重写</strong> <br /> 重写时不记录已过期的key，与RDB的保存策略类似</td>
+    </tr>
+    <tr>
+      <td>保存时机</td>
+      <td>命令触发或条件触发，条件格式为在M的时间内有N次写入命令，支持多个条件以 <strong>或</strong>的方式生效</td>
+      <td>提交写命令后触发追加命令流水，同时有定时的 <strong>AOF重写</strong> <br /> 要注意，追加流水不等于写入AOF文件，这是因为写入文件会有写入缓冲区<br />为了保证持久化的可靠性，redis支持三种写入文件配置<br />always模式:每条命令都追加到硬盘上<br />everysec模式:每隔1s将缓冲区内容刷入文件<br />no模式:不主动将缓冲区输入文件，等待操作系统处理</td>
+    </tr>
+    <tr>
+      <td>载入策略</td>
+      <td>保存了全量数据，载入效率高，有可能丢数据，因此载入优先级低</td>
+      <td>保存了执行命令，载入效率低，载入优先级高</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="aof重写">AOF重写</h2>
+<p>AOF文件保存的是命令流水，随着服务器运行时间的增长，命令流水也会不断增加，导致AOF文件越来越大。在这种情况下，redis采用了一种叫做 <strong>AOF重写</strong> 的策略来压缩AOF文件的占用空间。其实质过程是将redis中存储的所有数据，用写入命令回放一遍，得到一个新的AOF文件。在重写过程中，服务器接收到的所有写命令会临时存放在一个重写缓冲区中，在新的AOF文件生成完毕后，将该缓冲区的命令追加的新AOF文件的末尾。</p>
+
+<h2 id="特别的aof">特别的AOF</h2>
+<p>对于<code class="language-plaintext highlighter-rouge">PUBSUB</code>命令与<code class="language-plaintext highlighter-rouge">SCRIPT LOAD</code>命令，redis会通过<code class="language-plaintext highlighter-rouge">REDIS_FORCE_AOF</code>来刷入AOF缓冲区，原因是<code class="language-plaintext highlighter-rouge">PUB_SUB</code>命令影响的是所有订阅者的状态或数据，<code class="language-plaintext highlighter-rouge">SCRIPT LOAD</code>影响的是服务器状态。因此虽然这两个命令本身不改变redis数据库中的数据值，但是也会追加到AOF文件中。</p>
+
+<h1 id="第十二第十四章-事件客户端服务器">第十二~第十四章 事件/客户端/服务器</h1>
+<p>在介绍了redis的数据结构与持久化之后，紧接着的三章开始介绍redis的C/S架构实现，比如一个请求如何从client端发出，server端如何接受并处理。这三章有助于理解redis是如何设计并实现的，在需要造轮子的时候会有帮助。</p>
+
+<h2 id="事件">事件</h2>
+<p>redis内部分为两种事件： <strong>文件事件（file event）</strong> 以及 <strong>时间事件（time event）</strong> 其中的文件事件简单理解可以认为是命令触发事件，时间事件就是服务器做的一些定时任务（比如在AOF持久化中的everysec模式就会产生一个时间事件）。那么redis是如何使用单线程来处理这两种事件的呢？</p>
+
+<p>redis采用的是按时间事件作为时间分片，在一个时间片内尽可能多的处理文件事件，时间片结束之后，处理时间事件并根据下一个到来的时间事件分配时间片。听起来比较拗口，可以用一张图来理解</p>
+
+<p>TODO：补图</p>
+
+<p>redis在处理各事件时，也会考虑将执行时间过长的事件拆成几部分执行。比如如果一个文件事件传输的数据过大，那么会在传输一部分（实际上数据在缓冲区里）之后中断，从而执行时间事件，在时间事件执行完成后，又会重新进行传输。</p>
+
+<h2 id="客户端">客户端</h2>
+<p>本章主要介绍了redis的单机客户端实现，大部分功能点或者概念都比较容易想到，这里不展开细说。要注意两个特别的客户端 <strong>LUA Client</strong> 以及 <strong>AOF Client</strong>。</p>
+<ul>
+  <li><strong>LUA Client</strong>在服务器启动时创建，直到服务器销毁时销毁，用处是执行LUA脚本。</li>
+  <li><strong>AOF Client</strong>在载入AOF文件时创建，在执行完所有AOF文件命令时销毁，用处是从AOF恢复数据。</li>
+</ul>
+
+<h2 id="服务器">服务器</h2>
+<p>本章主要介绍了redis的单机服务器实现，实现部分较多，不作详细介绍了。</p>
+
+<h1 id="总结">总结</h1>
+<p><strong><em>Redis设计与实现</em></strong> 一书的第二章 <em>单机数据库的实现</em> 到此结束。本章主要介绍了redis的数据结构与CURD、数据持久化方案、事件模型、客户端与服务器架构几个方面的内容。平时工作中最常接触的，应该是数据持久化方案这一部分，包括面试中也比较常见。对于其他部分，个人觉得有价值的一个是数据结构与CURD部分，一个是事件模型部分。数据结构部分讲述了redis的底层数据结构，以及CURD在redis上的实现，有助于理解redis的高性能是怎么实现的。事件模型部分对于单线程处理时间事件与文件事件的设计值得学习，设计上也比较巧妙。</p>
+:ET

@@ -1,0 +1,101 @@
+I"�!<ul id="markdown-toc">
+  <li><a href="#java基础" id="markdown-toc-java基础">JAVA基础</a>    <ul>
+      <li><a href="#volatile关键字简述" id="markdown-toc-volatile关键字简述">volatile关键字简述</a></li>
+      <li><a href="#synchronized-与-lock-的区别" id="markdown-toc-synchronized-与-lock-的区别">synchronized 与 Lock 的区别</a></li>
+      <li><a href="#单例模式" id="markdown-toc-单例模式">单例模式</a></li>
+      <li><a href="#生产者消费者" id="markdown-toc-生产者消费者">生产者消费者</a></li>
+      <li><a href="#gc算法" id="markdown-toc-gc算法">GC算法</a></li>
+      <li><a href="#hashmap与concurrenthashmap" id="markdown-toc-hashmap与concurrenthashmap">HashMap与ConcurrentHashMap</a></li>
+    </ul>
+  </li>
+  <li><a href="#mysql" id="markdown-toc-mysql">MySQL</a>    <ul>
+      <li><a href="#索引" id="markdown-toc-索引">索引</a></li>
+      <li><a href="#mvcc" id="markdown-toc-mvcc">MVCC</a></li>
+    </ul>
+  </li>
+  <li><a href="#框架与协议" id="markdown-toc-框架与协议">框架与协议</a>    <ul>
+      <li><a href="#nio的使用" id="markdown-toc-nio的使用">NIO的使用</a></li>
+      <li><a href="#springmvc的使用" id="markdown-toc-springmvc的使用">SpringMVC的使用</a></li>
+      <li><a href="#zookeeper的使用" id="markdown-toc-zookeeper的使用">Zookeeper的使用</a></li>
+      <li><a href="#dubbo的使用" id="markdown-toc-dubbo的使用">dubbo的使用</a></li>
+    </ul>
+  </li>
+  <li><a href="#其他" id="markdown-toc-其他">其他</a></li>
+</ul>
+
+<p>七月份并不是一个面试的好季节，但我还是义无反顾的去面了。以下是一些面试经验总结，以及所经历的一些面试题，以此警醒自己，也希望能对后来者有所帮助。</p>
+
+<h2 id="java基础">JAVA基础</h2>
+<h3 id="volatile关键字简述">volatile关键字简述</h3>
+<p>并发有三个特性，原子性、可见性、有序性，<code class="language-plaintext highlighter-rouge">volatile</code>满足后两者，但不满足原子性（这里有个冷知识，对于Long以及Double这样的8字节数据，在32位机下，由于数据总线一次性只能读入4个字节而有可能无法保证原子性，JVM推荐实现原子性，但HotSpot似乎并没有这么做，因此需要对Long以及Double加<code class="language-plaintext highlighter-rouge">volatile</code>以保证写入与读取的原子性）</p>
+
+<h3 id="synchronized-与-lock-的区别">synchronized 与 Lock 的区别</h3>
+<p><code class="language-plaintext highlighter-rouge">synchronized</code>是<code class="language-plaintext highlighter-rouge">JAVA</code>的关键字之一，作用是可以保证线程同步，<code class="language-plaintext highlighter-rouge">Lock</code>是JDK中提供的一个接口，作用是可以显式的进行加锁与释放，并且可以通过不同的实现来完成不同的需求。至于<code class="language-plaintext highlighter-rouge">synchronized</code>与<code class="language-plaintext highlighter-rouge">Lock</code>的详细区别与介绍，请参考后续文章。</p>
+
+<h3 id="单例模式">单例模式</h3>
+<p>常用的有三种方式</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="nc">Singleton</span> <span class="o">{</span>
+  <span class="no">INSTANCE</span><span class="o">;</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">function</span><span class="o">()</span> <span class="o">{</span>
+    <span class="c1">// do work</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>枚举模式，简单明了，JVM实现自带单例，JDK1.5以后建议使用，缺点是无法继承抽象类</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Singleton</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="nc">Singleton</span> <span class="n">instance</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Singleton</span><span class="o">();</span>
+  <span class="kd">private</span> <span class="nf">Singleton</span><span class="o">()</span> <span class="o">{}</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="nc">Singleton</span> <span class="nf">getInstance</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">instance</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>用私有化构造方法，初始化时new出一个对象的方式，也能实现一个单例，缺点是在启动时该单例即初始化完成，如果初始化过程十分耗时，且很占资源，可能导致初始化过程较慢</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Singleton</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kd">class</span> <span class="nc">Holder</span> <span class="o">{</span>
+    <span class="kd">static</span> <span class="kd">final</span> <span class="nc">Singleton</span> <span class="n">instance</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Singleton</span><span class="o">();</span>
+  <span class="o">}</span>
+  <span class="kd">private</span> <span class="nf">Singleton</span><span class="o">()</span> <span class="o">{}</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="nc">Singleton</span> <span class="nf">getInstance</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="nc">Holder</span><span class="o">.</span><span class="na">instance</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>与上面一个实现方式相比，优点是不会在启动时加载，而是在调用时加载，避免了启动的耗时，缺点就是第一次调用会比较耗时</p>
+
+<h3 id="生产者消费者">生产者消费者</h3>
+<p>用<code class="language-plaintext highlighter-rouge">synchronized</code>与<code class="language-plaintext highlighter-rouge">Lock</code>实现生产者与消费者模式，着重考察<code class="language-plaintext highlighter-rouge">Lock</code>中<code class="language-plaintext highlighter-rouge">Condition</code>的用法及其实现原理。</p>
+
+<h3 id="gc算法">GC算法</h3>
+<p>GC算法的原理，包括堆的结构，young GC与full GC，常用GC算法说明。一般举例CMS，因为CMS对于系统的吞吐量影响较小，适用于IO密集型系统。GC算法的过程，可以参考<a href="https://plumbr.eu/handbook/what-is-garbage-collection">what-is-garbage-collection</a></p>
+
+<h3 id="hashmap与concurrenthashmap">HashMap与ConcurrentHashMap</h3>
+<p>HashMap的实现原理，多线程情况下存在什么问题，什么场景会触发这些问题。使用ConcurrentHashMap能够解决什么问题，ConcurrentHashMap的实现原理，JDK1.7 与 JDK1.8 的实现上有什么区别，等等等等。</p>
+
+<h2 id="mysql">MySQL</h2>
+
+<h3 id="索引">索引</h3>
+<p>索引的实现，B+树与B树的区别，为何不用B树做索引，联合索引的实现，最左前缀的原理。</p>
+
+<h3 id="mvcc">MVCC</h3>
+<p>MySQL的MVCC，或者说类MVCC是如何实现的，注意undo log 与 redo log，事务版本号。</p>
+
+<h2 id="框架与协议">框架与协议</h2>
+
+<h3 id="nio的使用">NIO的使用</h3>
+
+<h3 id="springmvc的使用">SpringMVC的使用</h3>
+<p>Spring的事务管理，Spring的分发机制等</p>
+
+<h3 id="zookeeper的使用">Zookeeper的使用</h3>
+<p>分布式协同一致性，主从的备份与同步，选主算法，Zookeeper在dubbo中的使用</p>
+
+<h3 id="dubbo的使用">dubbo的使用</h3>
+<p>dubbo的一些实现原理，主要是看是否有过阅读源码的经历</p>
+
+<h2 id="其他">其他</h2>
+<p>还会问一些与工作内容相关的问题，比如系统架构，系统的设计，数据库的设计等等，都是需要平时工作中关注的点，不能仅仅满足于实现需求，需要弄清楚系统的特性，怎么实现这个需求，为什么要这么实现这个需求，等等等等。</p>
+:ET

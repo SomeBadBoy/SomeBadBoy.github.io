@@ -1,0 +1,153 @@
+I"<ul id="markdown-toc">
+  <li><a href="#题" id="markdown-toc-题">题</a></li>
+  <li><a href="#解" id="markdown-toc-解">解</a>    <ul>
+      <li><a href="#想" id="markdown-toc-想">想</a></li>
+      <li><a href="#测" id="markdown-toc-测">测</a></li>
+      <li><a href="#码" id="markdown-toc-码">码</a></li>
+      <li><a href="#析" id="markdown-toc-析">析</a></li>
+    </ul>
+  </li>
+  <li><a href="#思" id="markdown-toc-思">思</a></li>
+</ul>
+
+<h1 id="题">题</h1>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>给你一个整数 n ，请你判断 n 是否为 丑数 。如果是，返回 true ；否则，返回 false 。
+
+丑数 就是只包含质因数 2、3 和/或 5 的正整数。
+
+示例 1：
+
+输入：n = 6
+输出：true
+解释：6 = 2 × 3
+
+示例 2：
+
+输入：n = 8
+输出：true
+解释：8 = 2 × 2 × 2
+
+示例 3：
+
+输入：n = 14
+输出：false
+解释：14 不是丑数，因为它包含了另外一个质因数 7 。
+
+示例 4：
+
+输入：n = 1
+输出：true
+解释：1 通常被视为丑数。
+ 
+提示：
+-2^31 &lt;= n &lt;= 2^31 - 1
+
+来源：力扣（LeetCode）
+链接：https://leetcode-cn.com/problems/ugly-number
+著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。
+</code></pre></div></div>
+
+<h1 id="解">解</h1>
+
+<h2 id="想">想</h2>
+<p>最简单的思路:</p>
+<ol>
+  <li>用规定的质因数集<code class="language-plaintext highlighter-rouge">S</code>去除该数<code class="language-plaintext highlighter-rouge">m</code>，得到结果<code class="language-plaintext highlighter-rouge">r</code></li>
+  <li>将<code class="language-plaintext highlighter-rouge">r</code>赋值给<code class="language-plaintext highlighter-rouge">m</code>，并重复1的步骤</li>
+  <li>当<code class="language-plaintext highlighter-rouge">m</code>等于1时，表明该数是<code class="language-plaintext highlighter-rouge">丑数</code></li>
+  <li>当质因数集<code class="language-plaintext highlighter-rouge">S</code>无法除尽<code class="language-plaintext highlighter-rouge">m</code>，且<code class="language-plaintext highlighter-rouge">m</code>不等于1时，该数不是<code class="language-plaintext highlighter-rouge">丑数</code></li>
+</ol>
+
+<h2 id="测">测</h2>
+
+<p><strong>常规用例</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>-</th>
+      <th>Case 1</th>
+      <th>Case 2</th>
+      <th>Case 3</th>
+      <th>Case 4</th>
+      <th>Case 5</th>
+      <th>Case 6</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>输入</td>
+      <td>6</td>
+      <td>8</td>
+      <td>10</td>
+      <td>13</td>
+      <td>14</td>
+      <td>300</td>
+    </tr>
+    <tr>
+      <td>输出</td>
+      <td>true</td>
+      <td>true</td>
+      <td>true</td>
+      <td>false</td>
+      <td>false</td>
+      <td>true</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>特殊用例</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>-</th>
+      <th>Case 1</th>
+      <th>Case 2</th>
+      <th>Case 3</th>
+      <th>Case 4</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>输入</td>
+      <td>-2</td>
+      <td>-1</td>
+      <td>0</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>输出</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+      <td>true</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="码">码</h2>
+<pre><code class="language-JAVA">    public boolean isUgly(int m) {
+        if(m &lt;= 0) return false;
+
+        int[] S = new int[]{2, 3, 5};
+        while(m != 1) {
+            int si = 0;
+            while(si &lt; S.length &amp;&amp; m % S[si] != 0) si++;
+
+            if(si &gt;= S.length) return m == 1;
+
+            m /= S[si];
+        }
+        return m == 1;
+    }
+</code></pre>
+
+<h2 id="析">析</h2>
+<p>空间复杂度比较明显，就是 $O(1)$。</p>
+
+<p>时间复杂度上界是 $O(logn)$，质因子至少也是2，极端情况下，如果该数是 $2^n$ 时，达到上界</p>
+
+<h1 id="思">思</h1>
+<p>leetcode easy题，比较简单。看了题解之后，发现实现上还有更优解法。</p>
+:ET

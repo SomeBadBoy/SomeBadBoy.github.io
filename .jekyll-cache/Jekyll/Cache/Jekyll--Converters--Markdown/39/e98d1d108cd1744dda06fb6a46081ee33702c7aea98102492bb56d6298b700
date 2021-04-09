@@ -1,0 +1,27 @@
+I"<ul id="markdown-toc">
+  <li><a href="#概述" id="markdown-toc-概述">概述</a></li>
+  <li><a href="#collection" id="markdown-toc-collection">Collection</a></li>
+  <li><a href="#map" id="markdown-toc-map">Map</a></li>
+  <li><a href="#结语" id="markdown-toc-结语">结语</a></li>
+</ul>
+
+<h1 id="概述">概述</h1>
+<p><code class="language-plaintext highlighter-rouge">Java</code>中的集合框架有两种，一种是<code class="language-plaintext highlighter-rouge">Map</code>，一种是<code class="language-plaintext highlighter-rouge">Collection</code>，<code class="language-plaintext highlighter-rouge">Collection</code>是一种线性的数据结构，<code class="language-plaintext highlighter-rouge">Map</code>则是一种key-value形式的数据结构。<code class="language-plaintext highlighter-rouge">Java</code>中的集合框架十分常用，比如<code class="language-plaintext highlighter-rouge">HashMap</code>，<code class="language-plaintext highlighter-rouge">ArrayList</code>，<code class="language-plaintext highlighter-rouge">LinkedList</code>等，下面介绍一下集合框架的关系，后续再深入每个类的内部，分析其实现原理与应用场景。</p>
+
+<h1 id="collection">Collection</h1>
+<p><img src="http://i1.piimg.com/567571/fb3a6966923d6f86.png" alt="" />
+<code class="language-plaintext highlighter-rouge">Collection</code>的派生类主要有三种，<code class="language-plaintext highlighter-rouge">List</code>，<code class="language-plaintext highlighter-rouge">Set</code>，<code class="language-plaintext highlighter-rouge">Queue</code>。</p>
+
+<p><code class="language-plaintext highlighter-rouge">List</code>在数据结构上可以称为链表，其特点是它记录了每个元素所在的位置，可以通过<code class="language-plaintext highlighter-rouge">get(int index)</code>方法获取对应位置上的元素，或者通过<code class="language-plaintext highlighter-rouge">set(int index, E value)</code>向指定位置插入元素，该位置之后的元素将依次后移一位。也可以通过<code class="language-plaintext highlighter-rouge">indexOf(E value)</code>获取该元素在List中对应的位置。典型应用是<code class="language-plaintext highlighter-rouge">ArrayList</code>,<code class="language-plaintext highlighter-rouge">LinkedList</code>,<code class="language-plaintext highlighter-rouge">Stack</code>。</p>
+
+<p><code class="language-plaintext highlighter-rouge">Set</code>在数据结构上可以称为集合，其特点是它所包含的元素互不相同，其实也就是数学意义上的<code class="language-plaintext highlighter-rouge">集合</code>。元素之间是否相同的判断，是调用<code class="language-plaintext highlighter-rouge">equals(Object o)</code>方法进行判断，当不实现<code class="language-plaintext highlighter-rouge">equals(Object o)</code>方法时，判断的是这两个元素在内存中的地址是否相同。典型应用是<code class="language-plaintext highlighter-rouge">HashSet</code>,<code class="language-plaintext highlighter-rouge">TreeSet</code>。</p>
+
+<p><code class="language-plaintext highlighter-rouge">Queue</code>在数据结构上可以称为队列，其特点是队列中的元素在一个方向上总是先进先出的，可以通过<code class="language-plaintext highlighter-rouge">offer(E value)</code>向队尾插入元素，也可以通过<code class="language-plaintext highlighter-rouge">peek(E value)</code>从队首获取一个元素。<code class="language-plaintext highlighter-rouge">Queue</code>的一个子类<code class="language-plaintext highlighter-rouge">Deque</code>是一个双向队列，也就是既可以向对尾插入元素，也可以向队首插入元素，既可以从队首获取元素，也可以从队尾获取元素。在一个方向上，其同样满足队列的先进先出特性。典型应用有<code class="language-plaintext highlighter-rouge">ArrayBlockingQueue</code>,<code class="language-plaintext highlighter-rouge">LinkedList</code>,<code class="language-plaintext highlighter-rouge">PriorityQueue</code>。</p>
+
+<h1 id="map">Map</h1>
+<p><img src="http://i1.piimg.com/567571/a7346c2ed2dc4cf0.png" alt="" />
+<code class="language-plaintext highlighter-rouge">Map</code>是<code class="language-plaintext highlighter-rouge">key</code>与<code class="language-plaintext highlighter-rouge">value</code>之间的映射关系，这种关系可以是一对一，一对多，多对一或多对多，根据不同的实现会有不同的映射关系与限制。常用的<code class="language-plaintext highlighter-rouge">Cache</code>其实也是一种<code class="language-plaintext highlighter-rouge">key</code>与<code class="language-plaintext highlighter-rouge">value</code>的映射关系。典型应用有<code class="language-plaintext highlighter-rouge">HashMap</code>,<code class="language-plaintext highlighter-rouge">TreeSet</code>,<code class="language-plaintext highlighter-rouge">LinkedHashMap</code>。</p>
+
+<h1 id="结语">结语</h1>
+<p>第一篇我们总览了<code class="language-plaintext highlighter-rouge">Java</code>的集合框架，下面将逐一介绍<code class="language-plaintext highlighter-rouge">Collection</code>与<code class="language-plaintext highlighter-rouge">Map</code>的常用实现以及其实现原理与核心算法。</p>
+:ET

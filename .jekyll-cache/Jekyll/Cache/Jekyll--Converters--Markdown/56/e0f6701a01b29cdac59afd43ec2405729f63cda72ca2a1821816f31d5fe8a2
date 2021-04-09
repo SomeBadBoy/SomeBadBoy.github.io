@@ -1,0 +1,174 @@
+I"A<ul id="markdown-toc">
+  <li><a href="#第二章-动态字符串" id="markdown-toc-第二章-动态字符串">第二章 动态字符串</a></li>
+  <li><a href="#第三章-链表" id="markdown-toc-第三章-链表">第三章 链表</a></li>
+  <li><a href="#第四章-字典" id="markdown-toc-第四章-字典">第四章 字典</a></li>
+  <li><a href="#第五章-跳跃表" id="markdown-toc-第五章-跳跃表">第五章 跳跃表</a></li>
+  <li><a href="#第六章-整数集合" id="markdown-toc-第六章-整数集合">第六章 整数集合</a></li>
+  <li><a href="#第七章-压缩列表" id="markdown-toc-第七章-压缩列表">第七章 压缩列表</a></li>
+  <li><a href="#第八章-对象" id="markdown-toc-第八章-对象">第八章 对象</a>    <ul>
+      <li><a href="#string" id="markdown-toc-string">string</a></li>
+      <li><a href="#list" id="markdown-toc-list">list</a></li>
+      <li><a href="#hash" id="markdown-toc-hash">hash</a></li>
+      <li><a href="#set" id="markdown-toc-set">set</a></li>
+      <li><a href="#zset" id="markdown-toc-zset">zset</a></li>
+    </ul>
+  </li>
+  <li><a href="#总结" id="markdown-toc-总结">总结</a></li>
+</ul>
+
+<h1 id="第二章-动态字符串">第二章 动态字符串</h1>
+<p>主要介绍了<code class="language-plaintext highlighter-rouge">redis</code>的<code class="language-plaintext highlighter-rouge">SDS(Simple Dynamic String)</code>的数据结构，比<code class="language-plaintext highlighter-rouge">C</code>上的<code class="language-plaintext highlighter-rouge">String</code>是有一个升级的，重点有几点：</p>
+
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">SDS</code>的数据结构里除了一个<code class="language-plaintext highlighter-rouge">char</code>数组，还有两个<code class="language-plaintext highlighter-rouge">int</code>字段，分别保存数组总长度 以及 剩余可用长度。</li>
+  <li><code class="language-plaintext highlighter-rouge">SDS</code>的扩容机制：数组长度小于 1M 时，每次扩容会额外扩容一倍，扩容后的剩余可用长度是总长度的一半；数组长度大于 1M 时，每次扩容额外扩容 1M。</li>
+  <li><code class="language-plaintext highlighter-rouge">SDS</code>支持存储<code class="language-plaintext highlighter-rouge">\0</code>作为字符串内容（而不是结尾分隔符），因为额外记录了数组中的有效字符数的长度。</li>
+</ol>
+
+<h1 id="第三章-链表">第三章 链表</h1>
+<p>比较普通的一个双向链表，没有什么特别突出的点。</p>
+
+<h1 id="第四章-字典">第四章 字典</h1>
+<p>其实就是<code class="language-plaintext highlighter-rouge">Map</code>类的数据结构，重点有以下几点：</p>
+
+<ol>
+  <li>字典里有两个<code class="language-plaintext highlighter-rouge">hash</code>指针，一般用 <code class="language-plaintext highlighter-rouge">ht[0]</code>，在做扩容（也就是<code class="language-plaintext highlighter-rouge">rehash</code>）的时候，可能会用到<code class="language-plaintext highlighter-rouge">ht[1]</code>，扩容完成之后，会释放原<code class="language-plaintext highlighter-rouge">ht[0]</code>，将<code class="language-plaintext highlighter-rouge">ht[1]</code>赋值给<code class="language-plaintext highlighter-rouge">ht[0]</code></li>
+  <li>渐进式扩容：为了避免一次扩容过程中<code class="language-plaintext highlighter-rouge">copy</code>大量的数据，导致<code class="language-plaintext highlighter-rouge">Redis</code>无法提供服务，因此<code class="language-plaintext highlighter-rouge">redis</code>会采用逐步扩容的方式对字典进行扩容。具体过程如下：</li>
+  <li>扩<code class="language-plaintext highlighter-rouge">ht[1]</code>，并且设置扩容标志<code class="language-plaintext highlighter-rouge">rehashidx</code>为0</li>
+  <li>在对字典进行操作的时候（查询、增加、删除），顺带将<code class="language-plaintext highlighter-rouge">ht[0]</code>的部分对象<code class="language-plaintext highlighter-rouge">rehash</code>到<code class="language-plaintext highlighter-rouge">ht[1]</code>中，并将<code class="language-plaintext highlighter-rouge">rehashidx</code>加1</li>
+  <li>扩容结束之后，将<code class="language-plaintext highlighter-rouge">rehashidx</code>设置为-1，表示扩容完成。</li>
+  <li>额外注意：在扩容期间，对字典的所有查询和删除操作，会同时在<code class="language-plaintext highlighter-rouge">ht[0]</code>和<code class="language-plaintext highlighter-rouge">ht[1]</code>上生效，所有的写入操作只在<code class="language-plaintext highlighter-rouge">ht[1]</code>上生效</li>
+</ol>
+
+<h1 id="第五章-跳跃表">第五章 跳跃表</h1>
+<p>普通的跳跃表，也没有介绍算法和数据结构</p>
+
+<h1 id="第六章-整数集合">第六章 整数集合</h1>
+<p>比较有意思的一个数据结构，使用场景固定：只包含整数的集合并且数量不多，集合内元素是有序的。有意思的地方在于，该数据结构底层用了一个<code class="language-plaintext highlighter-rouge">int_8</code>类型来存放所有整数，包括<code class="language-plaintext highlighter-rouge">int_8</code>、<code class="language-plaintext highlighter-rouge">int_16</code>、<code class="language-plaintext highlighter-rouge">int_32</code>和<code class="language-plaintext highlighter-rouge">int_64</code>。</p>
+
+<p>整数集合里包含三个属性，一个是集合数组，一个<code class="language-plaintext highlighter-rouge">int_8</code>类型的数组；一个是数组中元素的个数，这里要特别注意，是元素个数；还有一个是数组中数据的编码格式，该字段决定了数组中存放的数据格式。</p>
+
+<p>整数集合的插入过程大致如下：</p>
+<ol>
+  <li>判断插入元素的类型是否与当前编码格式匹配</li>
+  <li>如果小于当前编码（指的是数据长度小于，而不是数值小于），则直接插入（其实是顺序比较插入，因为要保证有序）</li>
+  <li>如果大于当前编码，则触发集合升级动作，升级完成后，进行插入。</li>
+</ol>
+
+<p>集合升级过程如下：</p>
+<ol>
+  <li>首先根据最大的数据长度，确定新的整数类型</li>
+  <li>根据新的整数类型来确定升级后的数组大小</li>
+  <li>将集合中的所有元素（包括插入的元素），按照从右往左的顺序，依次排列到新的数组里</li>
+</ol>
+
+<p>需要注意的是集合升级之后，是没有降级动作的。也就是一旦集合升级到<code class="language-plaintext highlighter-rouge">int_64</code>的数据结构了，就永远不可能降回<code class="language-plaintext highlighter-rouge">int_16</code>了。</p>
+
+<p>整数集合的好处有两点：一是自适应，能够存放多种整数结构。二是节约空间，使用恰当的格式存放整数。</p>
+
+<h1 id="第七章-压缩列表">第七章 压缩列表</h1>
+<p>一个在内存中连续存放的数据结构，用于小规模（整数较小 或 字符串较小）的<code class="language-plaintext highlighter-rouge">hash</code>类型或<code class="language-plaintext highlighter-rouge">list</code>类型。压缩列表的存储划分有三块:</p>
+<ol>
+  <li>第一块是前一个元素的长度<code class="language-plaintext highlighter-rouge">previous_entry_length</code></li>
+  <li>第二块是当前数据的编码和数据长度<code class="language-plaintext highlighter-rouge">encoding</code></li>
+  <li>第三块是实际的数据内容<code class="language-plaintext highlighter-rouge">content</code></li>
+</ol>
+
+<p>这里比较有意思的是第一块<code class="language-plaintext highlighter-rouge">previous_entry_length</code>。</p>
+<ol>
+  <li>首先，通过这个属性，可以实现列表从右向左的遍历，也就是压缩列表支持双向遍历。</li>
+  <li>其次，在前一个元素的长度（总长度）小于254字节时，<code class="language-plaintext highlighter-rouge">previous_entry_length</code>长度为一个字节；在前一个元素长度大于或等于254字节时，<code class="language-plaintext highlighter-rouge">previous_entry_length</code>长度为5个字节。</li>
+</ol>
+
+<p>基于第二点，会有一个很有意思的现象，叫做 <strong>连锁更新</strong>。 设想一个场景，有一个包含10个元素的压缩列表，其中的元素长度都在 250~253 之间。在修改这个压缩列表的第一个元素，并且将其增加到 255 个字节时，会引发第二个元素的长度更新（也就是<code class="language-plaintext highlighter-rouge">previous_entry_length</code>需要从1个字节增加到5个字节）。于是第二个元素的长度也达到了254个字节以上，又会引发第三个元素的更新，以此类推。这个现象，就叫做 <strong>连锁更新</strong>。很容易分析，在最坏情况下，往压缩列表中插入或更新数据的最坏时间复杂度是 $O(N^2)$，不过一般情况下，时间复杂度为 $O(N)$。</p>
+
+<h1 id="第八章-对象">第八章 对象</h1>
+<p>以上介绍的都是redis的基础数据结构，实际上在redis的存储中，基础的操作元素是一个对象，无论是key还是value，实际上都是对象。key是一个string对象，而value有5种类型，分别为</p>
+<ul>
+  <li>string</li>
+  <li>list</li>
+  <li>hash</li>
+  <li>set</li>
+  <li>zset</li>
+</ul>
+
+<p>redis的数据结构如下所示</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>typedef struct redisObject {
+  // 类型
+  unsigned type:4
+  // 编码
+  unsigned encoding:4
+  // 数据存储地址
+  void *ptr
+  // 最近一次被访问的时间
+  unsigned lru:22
+}
+</code></pre></div></div>
+
+<p>其中<code class="language-plaintext highlighter-rouge">type</code>就是五种数据类型，<code class="language-plaintext highlighter-rouge">encoding</code>是前面介绍的基础数据结构中的一种。具体每种类型底层的实现如下</p>
+
+<h2 id="string">string</h2>
+<p>能够存储字符串格式的数据，最常用的数据类型，也是唯一一个会在其他数据类型中嵌套使用的数据类型。</p>
+
+<p>redis在存储string类型的数据时，会先判断数据类型以及数据长度，根据不同的情况采用不同的存储结构。</p>
+<ul>
+  <li>如果是整数类型，并且数据长度可以使用long表示，那么会采用long进行存储。</li>
+  <li>如果数据长度小于等于32个字节，那么会用<code class="language-plaintext highlighter-rouge">embstr</code>来保存。<code class="language-plaintext highlighter-rouge">embstr</code>实际上是一个<code class="language-plaintext highlighter-rouge">redisObject</code>加<code class="language-plaintext highlighter-rouge">SDS</code>的数据结构，它们在内存中是连续的，读取和写入都只需要一次内存访问。</li>
+  <li>其余情况下，使用<code class="language-plaintext highlighter-rouge">SDS</code>进行存储。</li>
+</ul>
+
+<h2 id="list">list</h2>
+<p>有序列表格式的数据类型。</p>
+
+<p>redis在存储list的时候，有两种数据结构，一个是压缩列表<code class="language-plaintext highlighter-rouge">ziplist</code>，一个是链表<code class="language-plaintext highlighter-rouge">linkedlist</code>。只有满足以下两种情况的时候，才使用压缩列表存储</p>
+<ul>
+  <li>列表内所有元素的长度都小于64字节</li>
+  <li>列表内元素个数小于512个</li>
+</ul>
+
+<h2 id="hash">hash</h2>
+<p>包含多个键值对的数据类型。</p>
+
+<p>有两种数据结构，一个是压缩列表<code class="language-plaintext highlighter-rouge">ziplist</code>，一个是字典<code class="language-plaintext highlighter-rouge">hashtable</code>。只有满足以下两种情况时，才使用压缩列表存储</p>
+<ul>
+  <li>列表内所有元素的长度都小于64字节</li>
+  <li>列表内键值对个数小于512个</li>
+</ul>
+
+<p>压缩列表存储键值对是这么存的：将key对象推入压缩列表表尾，紧接着，将value对象推入压缩列表表尾，也就是key对象和value对象永远是成对相邻出现。在查询时，会遍历整个压缩列表，找到查询的key值以及紧跟其后的value值。其中key对象和value对象都是string类型的数据结构。</p>
+
+<h2 id="set">set</h2>
+<p>集合数据类型。</p>
+
+<p>也有两种数据结构，一个是整数集合<code class="language-plaintext highlighter-rouge">intset</code>和字典<code class="language-plaintext highlighter-rouge">hashtable</code>。只有满足以下两种情况时，才使用整数集合存储</p>
+<ul>
+  <li>set内所有元素都是整数类型</li>
+  <li>set内元素个数小于512个</li>
+</ul>
+
+<p>本质上，set和hash是非常类似的（包括JAVA里也是用HashMap实现的HashSet），在redis里，一个set其实就是所有value对象为null的hash对象。</p>
+
+<h2 id="zset">zset</h2>
+<p>有序集合数据类型。zset和set的区别，主要在于zset会有一个分值score字段，能够基于分值做排序以及范围查找等功能。</p>
+
+<p>也有两种数据结构，一个是压缩列表<code class="language-plaintext highlighter-rouge">ziplist</code>，一个是跳跃表<code class="language-plaintext highlighter-rouge">skiplist</code>加字典<code class="language-plaintext highlighter-rouge">hashtable</code>。只有满足以下两种情况时，才使用压缩列表存储</p>
+<ul>
+  <li>zset内所有元素的长度都小于64个字节</li>
+  <li>zset内元素个数小于128个</li>
+</ul>
+
+<p>在使用<code class="language-plaintext highlighter-rouge">ziplist</code>实现zset存储时，先根据score值，找到该元素在压缩列表中的位置，然后将元素对象先插入到对应位置，紧接着，在元素后面插入score值对象。其中，score值较小的排在前面。</p>
+
+<p>在使用<code class="language-plaintext highlighter-rouge">skiplist</code>和<code class="language-plaintext highlighter-rouge">hashtable</code>实现zset存储时，<code class="language-plaintext highlighter-rouge">skiplist</code>中根据score值作为索引实现一个跳跃表，跳跃表最底层有元素值（所有的），<code class="language-plaintext highlighter-rouge">hashtable</code>以元素值作为key，score作为value，同样也有所有元素值。</p>
+
+<p>那么为什么要用两种数据结构来做zset的存储呢？主要是基于zset不同使用场景下的性能考虑的，以zset支持的以下两个API举例：根据score值范围查找<code class="language-plaintext highlighter-rouge">zrange</code>、获取单个元素score值<code class="language-plaintext highlighter-rouge">zscore</code>。</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">zrange</code>如果使用<code class="language-plaintext highlighter-rouge">skiplist</code>实现，只需要 $O(logN)$ 的时间复杂度；而使用<code class="language-plaintext highlighter-rouge">hashtable</code>的话，需要 $O(NlogN)$ 的时间复杂度，并且需要 $O(N)$ 的额外空间复杂度。</li>
+  <li><code class="language-plaintext highlighter-rouge">zscore</code>如果使用<code class="language-plaintext highlighter-rouge">skiplist</code>实现，需要遍历整个列表，需要 $O(logN)$ 的时间复杂度；而使用<code class="language-plaintext highlighter-rouge">hashtable</code>的话，仅需要 $O(1)$ 的时间复杂度。</li>
+</ul>
+
+<h1 id="总结">总结</h1>
+<p><strong><em>Redis设计与实现</em></strong> 一书的第一章 <em>数据结构与对象</em> 到此结束。主要介绍了Redis底层使用的基础数据结构和对象，之前在我的认知中，对Redis的数据结构了解其实只到了五种数据类型这一层，实际上对于这些数据类型的底层数据结构实现，相关的实现设计其实都没有太多的了解，包括Redis是基于C语言实现的之前也不知道。后面会进行本书的后续章节的学习与总结，时间应该不会太久吧，学习的目的不是为了进行redis开发，而是希望能对redis有更多的了解，并且在条件允许（或者说有兴趣）的情况下，能够造一个类似的轮子，至少需要知道如何造一个类似的轮子。</p>
+
+<p>除了本文所介绍的内容之外，书中还有许多各数据类型所支持的API，以及该API对应的实现方式。这一部分本人认为不太重要，并且不是学习的重点，因此没有列举。</p>
+:ET
